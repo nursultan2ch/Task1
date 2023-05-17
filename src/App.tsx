@@ -1,26 +1,22 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import NGLFile from './NGLFile';
+import './NGL.css'
 
-function App() {
+const App: React.FC = () => {
+  const [file, setFile] = useState<File | undefined>(undefined);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    setFile(selectedFile);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='viewer-container'>
+      <input type="file" onChange={handleFileChange} />
+      <NGLFile width="400px" height="400px" file={file} />
     </div>
   );
-}
+};
 
 export default App;
+
