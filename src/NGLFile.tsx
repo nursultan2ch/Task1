@@ -7,52 +7,36 @@ interface NGLFileProps {
   file?: File;
 }
 
-const NGLFile: React.FC<NGLFileProps> = ({ width, height, file }) => {
-  const stageRef = useRef<NGL.Stage | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
+const NGLFile: React.FC<NGLFileProps> = ({ file, width, height }) => {
+  const viewerRef = useRef<HTMLDivElement>(null);
+  let stage: any;
   useEffect(() => {
-    if (containerRef.current) {
-      stageRef.current = new NGL.Stage(containerRef.current);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (file && stageRef.current) {
-      stageRef.current.removeAllComponents();
+    if (file && viewerRef.current) {
+      if (stage) {
+        stage.removeAllComponents();
+      } else {
+        stage = new NGL.Stage(viewerRef.current);
+      }
       const reader = new FileReader();
-
-      reader.onload = async (event) => {
-        if (event.target && stageRef.current) {
-          const contents = event.target.result as string;
-          const blob = new Blob([contents], { type: 'application/octet-stream' });
-          const structure = await NGL.autoLoad(blob, { ext: 'pdb' });
-          
-          const component = stageRef.current.addComponentFromObject(structure);
-          
-          
-          
-          
-          if (component instanceof NGL.Component) {
-            component.addRepresentation('cartoon', { aspectRatio: 2.5 });
-
-            // Add a representation for the HETATM particles (non-standard residues)
-            component.addRepresentation('ball+stick', { sele: 'HETATM' });
-
-            stageRef.current.autoView();
-          }
+      reader.onload = (e) => {
+        const pdbData = e.target?.result;
+        if (pdbData) {
+          stage.loadFile(file, {defaultRepresentation: true }).then((o: any) => {
+            stage.autoView();
+          });
         }
       };
-
-      reader.readAsArrayBuffer(file);
+      reader.readAsText(file);
     }
+
+    return () => {
+      if (stage) {
+        stage.dispose();
+      }
+    };
   }, [file]);
 
-  return (
-    
-    <div ref={containerRef} style={{ width:"100%", height:"100%"}}></div>
-  
-  );
+  return <div ref={viewerRef} style={{ width: width, height: height }}></div>;
 };
 
 export default NGLFile;
